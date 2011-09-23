@@ -76,19 +76,6 @@ config CPU_FREQ_DEFAULT_GOV_SMARTASS
 	help
 	 Use the CPUFreq governor 'smartass' as default.
 
-config CPU_FREQ_DEFAULT_GOV_SMOOTHASS
-	bool "smoothass"
-	select CPU_FREQ_GOV_SMOOTHASS
-	select CPU_FREQ_GOV_PERFORMANCE
-	help
-	 Use the CPUFreq governor 'smoothass' as default.
-	
-config CPU_FREQ_DEFAULT_GOV_SAVAGEDZEN
-	bool "SavagedZen"
-	select CPU_FREQ_GOV_SAVAGEDZEN
-	help
-	  Use the CPUFreq governor 'savagedzen' as default.
-
 config CPU_FREQ_DEFAULT_GOV_POWERSAVE
 	bool "powersave"
 	depends on EMBEDDED
@@ -97,13 +84,6 @@ config CPU_FREQ_DEFAULT_GOV_POWERSAVE
 	  Use the CPUFreq governor 'powersave' as default. This sets
 	  the frequency statically to the lowest frequency supported by
 	  the CPU.
-
-config CPU_FREQ_DEFAULT_GOV_SMARTASS2
-	bool "smartass2"
-	select CPU_FREQ_GOV_SMARTASS2
-	select CPU_FREQ_GOV_PERFORMANCE
-	help
-	  Use the CPUFreq governor 'smartass2' as default.
 
 config CPU_FREQ_DEFAULT_GOV_USERSPACE
 	bool "userspace"
@@ -163,13 +143,6 @@ config CPU_FREQ_DEFAULT_GOV_SCARY
 	help
 		Use the CPUFreq governor 'scary' as default.
 
-config CPU_FREQ_DEFAULT_GOV_SUPERBAD
-	bool "superbad"
-	select CPU_FREQ_GOV_SUPERBAD
-	select CPU_FREQ_GOV_PERFORMANCE
-	help
-	  Use the CPUFreq governor 'superbad' as default.
-
 config CPU_FREQ_DEFAULT_GOV_LAGFREE
 	bool "lagfree"
 	select CPU_FREQ_GOV_LAGFREE
@@ -191,11 +164,6 @@ config CPU_FREQ_DEFAULT_GOV_INTERACTIVE
 	  loading your cpufreq low-level hardware driver, using the
 	  'interactive' governor for latency-sensitive workloads.
 
-config CPU_FREQ_DEFAULT_GOV_SMARTASS2
-	bool "smartass2"
-	select CPU_FREQ_GOV_SMARTASS2
-	help
-	  Use the CPUFreq governor 'smartassV2' as default.
 endchoice
 config CPU_FREQ_DEFAULT_GOV_MINMAX
 	bool "minmax"
@@ -205,14 +173,6 @@ config CPU_FREQ_DEFAULT_GOV_MINMAX
 	  Use the CPUFreq governor 'minmax' as default. This minimizes the
 	  frequency jumps does by the governor. This is aimed at maximizing
 	  both perfomance and battery life.
-
-
-config CPU_FREQ_GOV_SAVAGEDZEN
-	tristate "'savagedzen' cpufreq governor"
-	depends on CPU_FREQ
-	help
-	   'Savaged-Zen' - a "smartass" based governor
-	   If in doubt, say N.
 
 config CPU_FREQ_GOV_PERFORMANCE
 	tristate "'performance' governor"
@@ -232,22 +192,6 @@ config CPU_FREQ_GOV_SMARTASS
 	smartass' - a "smart" optimized governor!
  	
 	If in doubt, say N.
-
-config CPU_FREQ_GOV_SMOOTHASS
-	tristate "'smoothass' cpufreq governor"
-	depends on CPU_FREQ
-	help
-	smoothass' - a "slightly more agressive smartass" governor!
- 	
-	If in doubt, say N.
-
-config CPU_FREQ_GOV_SMARTASS2
-	tristate "'smartass2' cpufreq governor"
-	depends on CPU_FREQ
-	help
-          smartass2' - a "slightly more agressive smart" optimized governor!
- 
-	  If in doubt, say Y.
 
 config CPU_FREQ_GOV_POWERSAVE
 	tristate "'powersave' governor"
@@ -342,14 +286,6 @@ config CPU_FREQ_GOV_MINMAX
 	  'minmax' - this driver tries to minimize the frequency jumps by limiting
 	  the the selected frequencies to either the min or the max frequency of
 	  the policy. The frequency is selected according to the load.
-
-	  If in doubt, say N.
-
-config CPU_FREQ_GOV_SUPERBAD
-	tristate "'superbad' cpufreq governor"
-	depends on CPU_FREQ
-	help
-	  'superbad' - a "superbad" super smooth rendition of a highly optimized "smartass" governor!
 
 	  If in doubt, say N.
 
