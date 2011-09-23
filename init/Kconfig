@@ -541,21 +541,22 @@ config CGROUP_DEBUG
 
 	  Say N if unsure.
 
-config CGROUP_NS
-	bool "Namespace cgroup subsystem"
-	depends on CGROUPS
-	help
-	  Provides a simple namespace cgroup subsystem to
-	  provide hierarchical naming of sets of namespaces,
-	  for instance virtual servers and checkpoint/restart
-	  jobs.
-
 config CGROUP_FREEZER
 	bool "Freezer cgroup subsystem"
 	depends on CGROUPS
 	help
 	  Provides a way to freeze and unfreeze all tasks in a
 	  cgroup.
+
+config CGROUP_TIMER_SLACK
+	tristate "Timer slack cgroup subsystem"
+	help
+	  Provides a way of tasks grouping by timer slack value.
+	  Introduces per cgroup timer slack value which will override
+	  the default timer slack value once a task is attached to a
+	  cgroup.
+	  It's useful in mobile devices where certain background apps
+	  are attached to a cgroup and combined wakeups are desired.
 
 config CGROUP_DEVICE
 	bool "Device controller for cgroups"
@@ -695,6 +696,8 @@ endif # CGROUPS
 
 config SCHED_AUTOGROUP
 	bool "Automatic process group scheduling"
+	depends on !SCHED_BFS
+	select EVENTFD
 	select CGROUPS
 	select CGROUP_SCHED
 	select FAIR_GROUP_SCHED
