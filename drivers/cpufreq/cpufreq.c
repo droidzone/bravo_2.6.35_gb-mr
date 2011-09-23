@@ -717,6 +717,24 @@ return -EINVAL;
 return count;
 }
 
+extern unsigned int acpuclk_get_vdd_min(void);
+static ssize_t show_vdd_min(struct cpufreq_policy *policy, char *buf)
+{
+	return sprintf(buf, "%u\n", acpuclk_get_vdd_min());
+}
+
+extern unsigned int acpuclk_get_vdd_max(void);
+static ssize_t show_vdd_max(struct cpufreq_policy *policy, char *buf)
+{
+	return sprintf(buf, "%u\n", acpuclk_get_vdd_max());
+}
+
+extern unsigned int acpuclk_get_vdd_step(void);
+static ssize_t show_vdd_step(struct cpufreq_policy *policy, char *buf)
+{
+	return sprintf(buf, "%u\n", acpuclk_get_vdd_step());
+}
+
 #endif
 
 /**
@@ -750,6 +768,9 @@ cpufreq_freq_attr_rw(scaling_governor);
 cpufreq_freq_attr_rw(scaling_setspeed);
 #ifdef CONFIG_CPU_FREQ_VDD_LEVELS
 cpufreq_freq_attr_rw(vdd_levels);
+cpufreq_freq_attr_ro(vdd_min);
+cpufreq_freq_attr_ro(vdd_max);
+cpufreq_freq_attr_ro(vdd_step);
 #endif
 
 static struct attribute *default_attrs[] = {
@@ -766,6 +787,9 @@ static struct attribute *default_attrs[] = {
 	&scaling_setspeed.attr,
 #ifdef CONFIG_CPU_FREQ_VDD_LEVELS
 	&vdd_levels.attr,
+	&vdd_min.attr,
+	&vdd_max.attr,
+	&vdd_step.attr,
 #endif
 	NULL
 };
@@ -1125,8 +1149,8 @@ static int cpufreq_add_dev(struct sys_device *sys_dev)
 		dprintk("initialization failed\n");
 		goto err_unlock_policy;
 	}
-	policy->user_policy.min = policy->min;
-	policy->user_policy.max = policy->max;
+	policy->user_policy.min = CONFIG_MSM_CPU_FREQ_ONDEMAND_MIN;
+	policy->user_policy.max = CONFIG_MSM_CPU_FREQ_ONDEMAND_MAX;
 
 	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,
 				     CPUFREQ_START, policy);
