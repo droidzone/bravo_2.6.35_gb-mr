@@ -43,6 +43,7 @@ extern void __rcu_read_lock(void);
 extern void __rcu_read_unlock(void);
 extern void synchronize_rcu(void);
 extern void exit_rcu(void);
+extern void synchronize_sched_expedited(void);
 
 /*
  * Defined as macro as it is a very low level header
@@ -94,6 +95,8 @@ static inline void synchronize_rcu_bh_expedited(void)
 {
 	synchronize_sched_expedited();
 }
+
+extern void rcu_barrier(void);
 
 extern void rcu_check_callbacks(int cpu, int user);
 
