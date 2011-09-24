@@ -13,7 +13,6 @@ obj-$(CONFIG_CPU_FREQ_GOV_INTERACTIVEX)	+= cpufreq_interactivex.o
 obj-$(CONFIG_CPU_FREQ_GOV_INTERACTIVE)	+= cpufreq_interactive.o
 obj-$(CONFIG_CPU_FREQ_GOV_SMARTASS)     += cpufreq_smartass.o
 obj-$(CONFIG_CPU_FREQ_GOV_SCARY)	+= cpufreq_scary.o
-obj-$(CONFIG_CPU_FREQ_GOV_SUPERBAD)	+= cpufreq_superbad.o
 obj-$(CONFIG_CPU_FREQ_GOV_MINMAX)	+= cpufreq_minmax.o
 obj-$(CONFIG_CPU_FREQ_GOV_LAGFREE)      += cpufreq_lagfree.o
 
