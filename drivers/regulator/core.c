@@ -1463,7 +1463,6 @@ int regulator_enable(struct regulator *regulator)
 	ret = _regulator_enable(rdev);
 	if (ret)
 		goto out;
-
 out:
 	mutex_unlock(&rdev->mutex);
 	return ret;
@@ -1749,6 +1748,9 @@ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV)
 	ret = update_voltage(regulator, min_uV, max_uV);
 	if (ret)
 		goto out;
+ 
+ 	regulator->min_uV = min_uV;
+ 	regulator->max_uV = max_uV;
 
 	regulator->min_uV = min_uV;
 	regulator->max_uV = max_uV;
