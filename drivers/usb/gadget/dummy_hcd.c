@@ -1426,7 +1426,8 @@ restart:
 							buf [0] = (u8)
 								dum->devstatus;
 						} else
-							buf [0] = 0;
+							/* Let the function handle this */
+							break;
 					}
 					if (urb->transfer_buffer_length > 1)
 						buf [1] = 0;

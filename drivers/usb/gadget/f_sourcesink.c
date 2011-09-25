@@ -59,6 +59,12 @@ struct f_sourcesink {
 
 	struct usb_ep		*in_ep;
 	struct usb_ep		*out_ep;
+
+	/* Function Power Management */
+	bool			    func_suspended;
+	bool			    func_wakeup_capable;
+	bool			    func_wakeup_enabled;
+	struct			    device dev;
 };
 
 static inline struct f_sourcesink *func_to_ss(struct usb_function *f)
@@ -148,6 +154,79 @@ static struct usb_gadget_strings *sourcesink_strings[] = {
 	NULL,
 };
 
+/*************************** DEVICE ATTRIBUTES ***************************/
+
+static ssize_t f_sourcesink_show_func_suspend(struct device *dev,
+	struct device_attribute *attr,
+	char *buf)
+{
+	struct f_sourcesink *ss = container_of(dev, struct f_sourcesink,
+		dev);
+	return sprintf(buf, "%d\n", ss->func_suspended);
+}
+
+static ssize_t f_sourcesink_show_func_wakeup_enabled(struct device *dev,
+	struct device_attribute *attr,
+	char *buf)
+{
+	struct f_sourcesink *ss = container_of(dev, struct f_sourcesink,
+		dev);
+	return sprintf(buf, "%d\n", ss->func_wakeup_enabled);
+}
+
+static ssize_t f_sourcesink_show_func_wakeup_capable(struct device *dev,
+	struct device_attribute *attr,
+	char *buf)
+{
+	struct f_sourcesink *ss = container_of(dev, struct f_sourcesink,
+		dev);
+	return sprintf(buf, "%d\n", ss->func_wakeup_capable);
+}
+
+static ssize_t f_sourcesink_store_func_wakeup_capable(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct f_sourcesink *ss = container_of(dev, struct f_sourcesink, dev);
+	unsigned long func_wakeup_capable;
+
+	/* Allows changing function wakeup capable field from the file system */
+	if (strict_strtoul(buf, 2, &func_wakeup_capable))
+		return -EINVAL;
+	ss->func_wakeup_capable = (bool)func_wakeup_capable;
+	return count;
+}
+
+static ssize_t f_sourcesink_store_func_wakeup_trigger(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct f_sourcesink *ss = container_of(dev, struct f_sourcesink, dev);
+
+	/* Allows trigerring function wakeup from the file system */
+	if (!ss->func_wakeup_capable || !ss->func_wakeup_enabled)
+		return -EINVAL;
+
+	if (usb_gadget_wakeup(ss->function.config->cdev->gadget,
+				       source_sink_intf.bInterfaceNumber) < 0)
+		return -EINVAL;
+	return count;
+}
+
+static DEVICE_ATTR(func_suspend, 0444, f_sourcesink_show_func_suspend, NULL);
+static DEVICE_ATTR(func_wakeup_enabled, 0444,
+	f_sourcesink_show_func_wakeup_enabled, NULL);
+static DEVICE_ATTR(func_wakeup_capable, 0666,
+	f_sourcesink_show_func_wakeup_capable,
+	f_sourcesink_store_func_wakeup_capable);
+static DEVICE_ATTR(func_wakeup_trigger, 0666, NULL,
+	f_sourcesink_store_func_wakeup_trigger);
+
+/*-------------------------------------------------------------------------*/
+
+static void sourcesink_release(struct device *dev)
+{
+	/* Nothing needs to be done */
+}
+
 /*-------------------------------------------------------------------------*/
 
 static int __init
@@ -156,6 +235,7 @@ sourcesink_bind(struct usb_configuration *c, struct usb_function *f)
 	struct usb_composite_dev *cdev = c->cdev;
 	struct f_sourcesink	*ss = func_to_ss(f);
 	int	id;
+	int	result = 0;
 
 	/* allocate interface ID(s) */
 	id = usb_interface_id(c, f);
@@ -190,12 +270,66 @@ autoconf_fail:
 	DBG(cdev, "%s speed %s: IN/%s, OUT/%s\n",
 			gadget_is_dualspeed(c->cdev->gadget) ? "dual" : "full",
 			f->name, ss->in_ep->name, ss->out_ep->name);
+
+	ss->dev.parent = &cdev->gadget->dev;
+	ss->dev.release = sourcesink_release;
+	dev_set_name(&ss->dev, "sourcesink");
+
+	result = device_register(&ss->dev);
+	if (result) {
+		ERROR(cdev, "failed to register: %d\n", result);
+		goto err_device_register;
+	}
+
+	result = device_create_file(&ss->dev, &dev_attr_func_suspend);
+	if (result) {
+		ERROR(cdev, "device_create_file failed\n", result);
+		goto err_func_suspend_file;
+	}
+
+	result = device_create_file(&ss->dev, &dev_attr_func_wakeup_enabled);
+	if (result) {
+		ERROR(cdev, "device_create_file failed\n", result);
+		goto err_func_wake_enabled_file;
+	}
+
+	result = device_create_file(&ss->dev, &dev_attr_func_wakeup_capable);
+	if (result) {
+		ERROR(cdev, "device_create_file failed\n", result);
+		goto err_func_wake_capable_file;
+	}
+
+	result = device_create_file(&ss->dev, &dev_attr_func_wakeup_trigger);
+	if (result) {
+		ERROR(cdev, "device_create_file failed\n", result);
+		goto err_func_wake_trigger_file;
+	}
+
 	return 0;
+
+err_func_wake_trigger_file:
+	device_remove_file(&ss->dev, &dev_attr_func_wakeup_capable);
+err_func_wake_capable_file:
+	device_remove_file(&ss->dev, &dev_attr_func_wakeup_enabled);
+err_func_wake_enabled_file:
+	device_remove_file(&ss->dev, &dev_attr_func_suspend);
+err_func_suspend_file:
+	device_unregister(&ss->dev);
+err_device_register:
+	return -ENODEV;
 }
 
 static void
 sourcesink_unbind(struct usb_configuration *c, struct usb_function *f)
 {
+	struct f_sourcesink	*ss = func_to_ss(f);
+
+	device_remove_file(&ss->dev, &dev_attr_func_suspend);
+	device_remove_file(&ss->dev, &dev_attr_func_wakeup_capable);
+	device_remove_file(&ss->dev, &dev_attr_func_wakeup_enabled);
+	device_remove_file(&ss->dev, &dev_attr_func_wakeup_trigger);
+	device_unregister(&ss->dev);
+
 	kfree(func_to_ss(f));
 }
 
@@ -330,6 +464,32 @@ static int source_sink_start_ep(struct f_sourcesink *ss, bool is_in)
 	return status;
 }
 
+static int sourcesink_func_suspend(struct usb_function *f,
+	u8 suspend_opt)
+{
+	struct f_sourcesink *ss = func_to_ss(f);
+	struct usb_composite_dev	*cdev;
+
+	cdev = ss->function.config->cdev;
+
+	/* Parse suspend options */
+	ss->func_suspended = suspend_opt & USB_INTR_FUNC_SUSPEND_SUSP;
+	ss->func_wakeup_enabled = suspend_opt & USB_INTR_FUNC_SUSPEND_RWAKE_EN;
+
+	return 1;
+}
+
+static int sourcesink_get_status(struct usb_function *f)
+{
+	struct f_sourcesink *ss = func_to_ss(f);
+	struct usb_composite_dev	*cdev;
+
+	cdev = ss->function.config->cdev;
+
+	return ss->func_wakeup_capable << USB_INTR_STAT_RWAKE_CAP
+		| (ss->func_wakeup_enabled << USB_INTR_STAT_RWAKE_EN);
+}
+
 static void disable_source_sink(struct f_sourcesink *ss)
 {
 	struct usb_composite_dev	*cdev;
@@ -419,6 +579,8 @@ static int __init sourcesink_bind_config(struct usb_configuration *c)
 	ss->function.unbind = sourcesink_unbind;
 	ss->function.set_alt = sourcesink_set_alt;
 	ss->function.disable = sourcesink_disable;
+	ss->function.func_suspend = sourcesink_func_suspend;
+	ss->function.get_status = sourcesink_get_status;
 
 	status = usb_add_function(c, &ss->function);
 	if (status)
