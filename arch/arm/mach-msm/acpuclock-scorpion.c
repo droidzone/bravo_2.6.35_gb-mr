@@ -244,7 +244,7 @@ static void scpll_set_freq(uint32_t lval)
 			;
 
 		/* completion bit is not reliable for SHOT switch */
-		udelay(25);
+		udelay(15);
 	}
 
 	/* write the new L val and switch mode */
@@ -314,7 +314,7 @@ int acpuclk_set_rate(unsigned long rate, enum setrate_reason reason)
 	/* convert to KHz */
 	rate /= 1000;
 
-	DEBUG("acpuclk_set_rate(%d,%d)\n", (int) rate, reason);
+	DEBUG("acpuclk_set_rate(%d,%d)\n", (int) rate, for_power_collapse);
 
 	if (rate == cur->acpu_khz || rate == 0)
 		return 0;
@@ -547,9 +547,10 @@ unsigned long acpuclk_power_collapse(int from_idle)
 {
 	int ret = acpuclk_get_rate();
 	enum setrate_reason reason = (from_idle) ? SETRATE_PC_IDLE : SETRATE_PC;
+
 	if (ret > drv_state.power_collapse_khz)
-		acpuclk_set_rate(drv_state.power_collapse_khz * 1000, reason);
-	return ret * 1000;
+		acpuclk_set_rate(drv_state.power_collapse_khz, reason);
+	return ret;
 }
 
 unsigned long acpuclk_get_wfi_rate(void)
@@ -561,8 +562,8 @@ unsigned long acpuclk_wait_for_irq(void)
 {
 	int ret = acpuclk_get_rate();
 	if (ret > drv_state.wait_for_irq_khz)
-		acpuclk_set_rate(drv_state.wait_for_irq_khz * 1000, SETRATE_SWFI);
-	return ret * 1000;
+		acpuclk_set_rate(drv_state.wait_for_irq_khz, SETRATE_SWFI);
+	return ret;
 }
 
 void __init msm_acpu_clock_init(struct msm_acpu_clock_platform_data *clkdata)
