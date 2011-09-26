@@ -595,7 +595,7 @@ static int __init cpufreq_smoothass_init(void)
 	}
 
 	/* Scale up is high priority */
-	up_wq = create_rt_workqueue("ksmoothass_up");
+	up_wq = create_workqueue("ksmoothass_up");
 	down_wq = create_workqueue("ksmoothass_down");
 
 	INIT_WORK(&freq_scale_work, cpufreq_smoothass_freq_change_time_work);
