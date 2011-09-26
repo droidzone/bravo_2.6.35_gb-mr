@@ -263,7 +263,7 @@ static struct curcial_oj_platform_data bravo_oj_data = {
 static struct microp_function_config microp_lightsensor_function = {
 	.name = "light_sensor",
 	.category = MICROP_FUNCTION_LSENSOR,
-	.levels = { 0x01, 0x21, 0x4D, 0xDC, 0x134, 0x18D, 0x1E5, 0x3FF, 0x3FF, 0x3FF },
+	.levels = { 0x04, 0x21, 0x4D, 0xDC, 0x134, 0x18D, 0x1E5, 0x280, 0x340, 0x3FF },
 	.channel = 6,
 	.int_pin = 1 << 9,
 	.golden_adc = 0xC0,
@@ -415,7 +415,7 @@ static struct msm_hsusb_platform_data msm_hsusb_pdata = {
 static struct usb_mass_storage_platform_data mass_storage_pdata = {
 	.nluns		= 1,
 	.vendor		= "HTC",
-	.product	= "Android Phone",
+	.product	= "Desire",
 	.release	= 0x0100,
 };
 
