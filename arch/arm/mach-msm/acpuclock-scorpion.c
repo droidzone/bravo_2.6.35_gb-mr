@@ -314,7 +314,7 @@ int acpuclk_set_rate(unsigned long rate, enum setrate_reason reason)
 	/* convert to KHz */
 	rate /= 1000;
 
-	DEBUG("acpuclk_set_rate(%d,%d)\n", (int) rate, for_power_collapse);
+	DEBUG("acpuclk_set_rate(%d,%d)\n", (int) rate, reason);
 
 	if (rate == cur->acpu_khz || rate == 0)
 		return 0;
@@ -549,8 +549,8 @@ unsigned long acpuclk_power_collapse(int from_idle)
 	enum setrate_reason reason = (from_idle) ? SETRATE_PC_IDLE : SETRATE_PC;
 
 	if (ret > drv_state.power_collapse_khz)
-		acpuclk_set_rate(drv_state.power_collapse_khz, reason);
-	return ret;
+    acpuclk_set_rate(drv_state.power_collapse_khz * 1000, reason); 
+    return ret * 1000;
 }
 
 unsigned long acpuclk_get_wfi_rate(void)
@@ -562,8 +562,9 @@ unsigned long acpuclk_wait_for_irq(void)
 {
 	int ret = acpuclk_get_rate();
 	if (ret > drv_state.wait_for_irq_khz)
-		acpuclk_set_rate(drv_state.wait_for_irq_khz, SETRATE_SWFI);
-	return ret;
+    acpuclk_set_rate(drv_state.wait_for_irq_khz, SETRATE_SWFI); 
+    return ret; 
+
 }
 
 void __init msm_acpu_clock_init(struct msm_acpu_clock_platform_data *clkdata)
